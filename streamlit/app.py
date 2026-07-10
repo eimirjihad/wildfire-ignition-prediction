@@ -258,8 +258,27 @@ h2, h3 {{ color: #ffffff !important; }}
 """, unsafe_allow_html=True)
 
 # ---------- Load artifacts ----------
+import urllib.request
+
+# Large model files aren't stored in the repo (GitHub's file-size limits).
+# They're hosted as GitHub Release assets and downloaded on first run.
+RELEASE_BASE = "https://github.com/eimirjihad/wildfire-ignition-prediction/releases/download/v1"
+REMOTE_ARTIFACTS = ["rf_model.joblib", "selected_features.joblib", "shap_explainer.joblib"]
+
+def _ensure_artifact(name):
+    """Fetch an artifact from the GitHub Release if it isn't already on disk."""
+    path = ASSET_DIR / name
+    if path.exists():
+        return path
+    ASSET_DIR.mkdir(parents=True, exist_ok=True)
+    with st.spinner(f"Downloading {name} (first run only)…"):
+        urllib.request.urlretrieve(f"{RELEASE_BASE}/{name}", path)
+    return path
+
 @st.cache_resource
 def load_artifacts():
+    for name in REMOTE_ARTIFACTS:
+        _ensure_artifact(name)
     rf = joblib.load(ASSET_DIR / 'rf_model.joblib')
     selected_features = joblib.load(ASSET_DIR / 'selected_features.joblib')
     explainer = joblib.load(ASSET_DIR / 'shap_explainer.joblib')
