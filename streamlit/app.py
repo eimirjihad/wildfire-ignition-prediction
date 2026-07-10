@@ -490,20 +490,29 @@ with st.container(border=False, key="card2"):
     selected_label = st.selectbox("Window", option_labels, label_visibility="collapsed")
 
     # On mobile, tapping a selectbox focuses its search input and pops the
-    # on-screen keyboard. inputmode="none" suppresses that keyboard on phones
-    # while leaving type-to-search intact on desktop (physical keyboards ignore
-    # the hint). Re-applied via observer since Streamlit re-renders on rerun.
+    # on-screen keyboard. Marking the input readonly reliably suppresses the
+    # keyboard (the dropdown still opens from the container, not the input).
+    # Gated to narrow screens so desktop keeps type-to-search. Re-applied via
+    # observer since Streamlit re-renders the widget on rerun.
     components.html(
         """
         <script>
         const doc = window.parent.document;
+        const isMobile = () => window.parent.innerWidth <= 640;
         const apply = () => {
             doc.querySelectorAll('div[data-baseweb="select"] input').forEach(el => {
-                el.setAttribute('inputmode', 'none');
+                if (isMobile()) {
+                    el.setAttribute('readonly', 'readonly');
+                    el.setAttribute('inputmode', 'none');
+                    el.blur();
+                } else {
+                    el.removeAttribute('readonly');
+                }
             });
         };
         apply();
         new MutationObserver(apply).observe(doc.body, {childList: true, subtree: true});
+        window.parent.addEventListener('resize', apply);
         </script>
         """,
         height=0,
