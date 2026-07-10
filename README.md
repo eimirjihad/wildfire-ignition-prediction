@@ -1,12 +1,14 @@
 # Wildfire Ignition Prediction
 
-Extends [FireCastRL](https://arxiv.org/abs/2601.14238) (GRIDMET weather + IRWIN fire records, 2013–2025) with human-activity features — population density, land cover, holidays, and utility-corridor proximity — to test the paper's own stated limitation: ~84% of US wildfires are human-caused, and a weather-only model can't see that.
+Extends the [FireCastRL](https://arxiv.org/abs/2601.14238) paper (GRIDMET weather + IRWIN fire records, 2013–2025) with human-activity features: population density, land cover, holidays, and utility-corridor proximity, to test the paper's own stated limitation: **~84% of US wildfires caused by humans.**
+
+**Interactive Website:** https://wildfire-ignition-prediction-eimirjihad.streamlit.app/ 
 
 **Full writeup:** [`WRITEUP.md`](./WRITEUP.md)
 
 ## Headline Finding
 
-**Adding population density does NOT improve test F2, despite ranking #2 of 46 features in permutation importance and showing a clean directional effect in SHAP.**
+**Adding population density does NOT improve test F2, despite ranking #2 of 46 features in permutation importance, #1 importance in SHAP and showing a clean directional effect in SHAP.**
 
 A controlled ablation on the same 46 selected features:
 
@@ -15,12 +17,14 @@ A controlled ablation on the same 46 selected features:
 | Full (46 features, incl. human-activity) | 0.602 |
 | Same set, human-activity features removed | **0.610** |
 
-Yet SHAP shows population density with the widest, cleanest spread of any feature — high values consistently push predictions toward "fire," low values push away:
+Yet SHAP shows that population density has the widest, cleanest spread of any feature. High pop. density values consistently push predictions toward "fire," low values push towards "no fire".
+
+Below is the waterfall plot of variables ranked by importance against SHAP values:
 <p align="center">
-  <img width="390" height="639" alt="image" src="https://github.com/user-attachments/assets/da24ec4d-af3a-4cad-9dcd-d5d256e30360" />
+  <img width="400" height="639" alt="image" src="https://github.com/user-attachments/assets/da24ec4d-af3a-4cad-9dcd-d5d256e30360" />
 </p>
 
-**The reconciliation:** permutation importance and SHAP measure how much a *specific trained model* relies on a feature. The ablation asks whether that feature is *necessary* to reach the model's performance ceiling. Random Forest has enough capacity to recover equivalent signal from weather-variable interactions (precipitation and dryness patterns likely covary with WUI proximity and seasonal human activity), so the model reroutes around population density at no net cost. Individual importance does not guarantee irreplaceability — a concrete illustration of feature redundancy in tree ensembles. See [`WRITEUP.md`](./WRITEUP.md) for the full argument.
+**The reconciliation:** permutation importance and SHAP measure how much a *specific trained model* relies on a feature. The ablation asks whether that feature is *necessary* to reach the model's performance ceiling. Random Forest has enough capacity to recover equivalent signal from weather-variable interactions, so the model reroutes around population density at no net cost. Individual importance does not guarantee irreplaceability — a concrete illustration of feature redundancy in tree ensembles. See [`WRITEUP.md`](./WRITEUP.md) for the full argument.
 
 ## Results
 
@@ -61,7 +65,3 @@ pip install holidays
 ```
 
 Run notebooks in order: `01_preprocessing...` produces `wildfire_features_full.csv`, which `02_modelling...` consumes.
-
-## Status
-
-Modeling, explainability, and the population-density ablation are complete. Streamlit demo app scoped, not yet built.
