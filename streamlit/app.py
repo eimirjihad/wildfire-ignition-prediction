@@ -254,6 +254,35 @@ h2, h3 {{ color: #ffffff !important; }}
     border-radius: 999px;
     padding: 0.3rem 0.72rem;
 }}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 640px) {{
+    .hero {{
+        height: auto;
+        min-height: 88vh;
+        padding: 3rem 1rem 2.5rem;
+        justify-content: center;
+    }}
+    .hero h1 {{
+        font-size: 2.3rem;
+        letter-spacing: -0.5px;
+        line-height: 1.1;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        max-width: 100%;
+    }}
+    .hero p {{ font-size: 1.05rem; }}
+    .hero .metrics {{ gap: 0.8rem; margin-top: 1.6rem; width: 100%; }}
+    .hero .metric-box {{
+        flex: 1 1 40%;
+        min-width: 130px;
+        padding: 0.8rem 1rem;
+    }}
+    .hero .metric-box .num {{ font-size: 1.6rem; }}
+    .hero .metric-box .lbl {{ font-size: 0.68rem; letter-spacing: 0.5px; }}
+    .scroll-hint {{ margin-top: 1.8rem; }}
+    .findings-grid {{ grid-template-columns: 1fr; }}
+}}
 </style>
 """, unsafe_allow_html=True)
 
