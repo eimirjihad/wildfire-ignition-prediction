@@ -10,7 +10,6 @@ import base64
 from pathlib import Path
 
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 import joblib
@@ -487,38 +486,39 @@ with st.container(border=False, key="card2"):
         st.warning("No windows match this filter.")
         st.stop()
 
-    selected_label = st.selectbox("Window", option_labels, label_visibility="collapsed")
+    n_windows = len(options_df)
 
-    # On mobile, tapping a selectbox focuses its search input and pops the
-    # on-screen keyboard. Marking the input readonly reliably suppresses the
-    # keyboard (the dropdown still opens from the container, not the input).
-    # Gated to narrow screens so desktop keeps type-to-search. Re-applied via
-    # observer since Streamlit re-renders the widget on rerun.
-    components.html(
-        """
-        <script>
-        const doc = window.parent.document;
-        const isMobile = () => window.parent.innerWidth <= 640;
-        const apply = () => {
-            doc.querySelectorAll('div[data-baseweb="select"] input').forEach(el => {
-                if (isMobile()) {
-                    el.setAttribute('readonly', 'readonly');
-                    el.setAttribute('inputmode', 'none');
-                    el.blur();
-                } else {
-                    el.removeAttribute('readonly');
-                }
-            });
-        };
-        apply();
-        new MutationObserver(apply).observe(doc.body, {childList: true, subtree: true});
-        window.parent.addEventListener('resize', apply);
-        </script>
-        """,
-        height=0,
-    )
-    selected_idx = option_labels.index(selected_label)
+    # Keyboard-free selector. A searchable selectbox focuses a text input on
+    # mobile and pops the on-screen keyboard; a slider + step buttons have no
+    # text field, so the keyboard never appears. Index is kept in session_state
+    # and clamped in case the filter changed the number of options.
+    if "win_idx" not in st.session_state:
+        st.session_state.win_idx = 0
+    st.session_state.win_idx = min(st.session_state.win_idx, n_windows - 1)
+
+    if n_windows > 1:
+        prev_col, slider_col, next_col = st.columns([1, 6, 1])
+        with prev_col:
+            if st.button("◀", use_container_width=True, help="Previous window"):
+                st.session_state.win_idx = (st.session_state.win_idx - 1) % n_windows
+        with next_col:
+            if st.button("▶", use_container_width=True, help="Next window"):
+                st.session_state.win_idx = (st.session_state.win_idx + 1) % n_windows
+        with slider_col:
+            st.session_state.win_idx = st.slider(
+                "Window", 0, n_windows - 1, st.session_state.win_idx,
+                label_visibility="collapsed",
+            )
+
+    selected_idx = st.session_state.win_idx
+    selected_label = option_labels[selected_idx]
     selected_row = options_df.iloc[selected_idx]
+    st.markdown(
+        f"<div style='text-align:center;opacity:0.85;margin:0.2rem 0 0.4rem;'>"
+        f"Window {selected_idx + 1} of {n_windows} &nbsp;·&nbsp; <b>{selected_label}</b></div>",
+        unsafe_allow_html=True,
+    )
+
 
     # Indicators
     lc_active = [c.replace('lc_', '').title() for c in selected_row.index
