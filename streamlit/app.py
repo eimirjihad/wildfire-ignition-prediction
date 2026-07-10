@@ -486,39 +486,9 @@ with st.container(border=False, key="card2"):
         st.warning("No windows match this filter.")
         st.stop()
 
-    n_windows = len(options_df)
-
-    # Keyboard-free selector. A searchable selectbox focuses a text input on
-    # mobile and pops the on-screen keyboard; a slider + step buttons have no
-    # text field, so the keyboard never appears. Index is kept in session_state
-    # and clamped in case the filter changed the number of options.
-    if "win_idx" not in st.session_state:
-        st.session_state.win_idx = 0
-    st.session_state.win_idx = min(st.session_state.win_idx, n_windows - 1)
-
-    if n_windows > 1:
-        prev_col, slider_col, next_col = st.columns([1, 6, 1])
-        with prev_col:
-            if st.button("◀", use_container_width=True, help="Previous window"):
-                st.session_state.win_idx = (st.session_state.win_idx - 1) % n_windows
-        with next_col:
-            if st.button("▶", use_container_width=True, help="Next window"):
-                st.session_state.win_idx = (st.session_state.win_idx + 1) % n_windows
-        with slider_col:
-            st.session_state.win_idx = st.slider(
-                "Window", 0, n_windows - 1, st.session_state.win_idx,
-                label_visibility="collapsed",
-            )
-
-    selected_idx = st.session_state.win_idx
-    selected_label = option_labels[selected_idx]
+    selected_label = st.selectbox("Window", option_labels, label_visibility="collapsed")
+    selected_idx = option_labels.index(selected_label)
     selected_row = options_df.iloc[selected_idx]
-    st.markdown(
-        f"<div style='text-align:center;opacity:0.85;margin:0.2rem 0 0.4rem;'>"
-        f"Window {selected_idx + 1} of {n_windows} &nbsp;·&nbsp; <b>{selected_label}</b></div>",
-        unsafe_allow_html=True,
-    )
-
 
     # Indicators
     lc_active = [c.replace('lc_', '').title() for c in selected_row.index
